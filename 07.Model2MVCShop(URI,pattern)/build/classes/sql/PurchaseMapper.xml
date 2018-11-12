@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<mapper namespace="PurchaseMapper">
+		
+		<resultMap id="purchaseSelectMap" type="purchase">
+		<result property="tranNo" column="tran_no" jdbcType="NUMERIC"/>
+		<result property="purchaseProd.prodNo" column="prod_no" jdbcType="NUMERIC"/>
+		<result property="buyer.userId" column="buyer_id" jdbcType="VARCHAR"/>
+		<result property="paymentOption" column="payment_option" jdbcType="CHAR"/>
+		<result property="receiverName" column="receiver_name" jdbcType="VARCHAR"/>
+		<result property="receiverPhone" column="receiver_phone" jdbcType="VARCHAR"/>
+		<result property="divyAddr" column="dlvy_addr" jdbcType="VARCHAR"/>
+		<result property="divyRequest" column="dlvy_request" jdbcType="VARCHAR"/>
+		<result property="tranCode" column="tran_status_code" jdbcType="CHAR"/>
+		<result property="orderDate" column="order_date" jdbcType="DATE"/>
+		<result property="divyDate" column="dlvy_date" jdbcType="DATE"/>
+		</resultMap>
+		
+		<insert id="addPurchase" parameterType="purchase">
+		INSERT INTO transaction(tran_no, prod_no, buyer_id, payment_option, receiver_name, 
+															receiver_phone, dlvy_addr, dlvy_request, tran_status_code, order_date, dlvy_date)
+		VALUES (seq_transaction_tran_no.nextval, #{purchaseProd.prodNo}, #{buyer.userId}, #{paymentOption},
+		#{receiverName},#{receiverPhone},#{divyAddr},#{divyRequest:VARCHAR},1,SYSDATE, TO_CHAR(TO_DATE(#{divyDate}, 'YYYY-MM-DD'), 'YYYYMMDD'))
+		</insert>
+		
+		<select id="getPurchase" parameterType="int" resultMap="purchaseSelectMap">
+		SELECT tran_no, prod_no, buyer_id, payment_option, receiver_name, 
+						receiver_phone, dlvy_addr, dlvy_request, tran_status_code, order_date, dlvy_date
+		FROM transaction 
+		WHERE tran_no = #{tranNo}
+		</select>
+		
+		<select id="getPurchase2" parameterType="int" resultMap="purchaseSelectMap">
+		SELECT tran_no, prod_no, buyer_id, payment_option, receiver_name, 
+						receiver_phone, dlvy_addr, dlvy_request, tran_status_code, order_date, dlvy_date
+		FROM transaction 
+		WHERE prod_no = #{purchaseProd.prodNo}
+		</select>
+		
+		<update id="updatePurchase" parameterType="purchase">
+		UPDATE transaction 
+			<set>
+				payment_option = #{paymentOption},
+				receiver_name = #{receiverName},
+				receiver_phone = #{receiverPhone},
+				dlvy_addr = #{divyAddr},
+				dlvy_request = #{divyRequest:VARCHAR},
+				dlvy_date = #{divyDate},
+			</set>
+		WHERE tran_no=#{tranNo}
+		</update>
+		
+		<update id="updateTranCode" parameterType="purchase">
+		UPDATE transaction 
+		<set>
+		tran_status_code= #{tranCode}
+		</set> 
+		WHERE prod_no=#{purchaseProd.prodNo}
+		</update>
+		
+		<select  id="getPurchaseList"  parameterType="map"	resultMap="purchaseSelectMap">
+		SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(SELECT t.prod_no prod_no,t.tran_no tran_no, t.buyer_id buyer_id, t.payment_option payment_option,
+												t.receiver_name receiver_name, t.receiver_phone receiver_phone,
+												t.tran_status_code tran_status_code 
+												FROM transaction t, product p
+												WHERE t.buyer_id = #{buyerId} AND t.prod_no(+)=p.prod_no) inner_table
+						WHERE ROWNUM &lt;= #{object.endRowNum} )
+		WHERE row_seq BETWEEN #{object.startRowNum} AND #{object.endRowNum}
+		</select>
+		
+		<select  id="getTotalCount"  parameterType="String"	 resultType="int">
+		SELECT COUNT(*)
+	  	FROM(	SELECT t.prod_no prod_no,t.tran_no tran_no, t.buyer_id buyer_id, t.payment_option payment_option,
+						t.receiver_name receiver_name, t.receiver_phone receiver_phone,
+						t.tran_status_code tran_status_code 
+						FROM transaction t, product p
+						WHERE t.buyer_id = #{value} AND t.prod_no(+)=p.prod_no) countTable
+		</select>
+</mapper>

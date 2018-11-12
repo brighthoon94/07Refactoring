@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<mapper namespace="ProductMapper">
+
+
+		<resultMap id= "productSelectMap" type="product">
+			<result property="prodNo"					column="prod_no"			jdbcType="NUMERIC"/>
+			<result property="prodName"			column="prod_name"	jdbcType="VARCHAR"/>
+			<result property="prodDetail"			column="prod_detail"	jdbcType="VARCHAR"/>
+			<result property="manuDate"			column="manufacture_day"		jdbcType="VARCHAR"/>
+			<result property="price"						column="price"				jdbcType="NUMERIC"/>
+			<result property="fileName"				column="image_file"		jdbcType="VARCHAR"/>
+			<result property="regDate"				column="reg_date"			jdbcType="DATE"/>
+			<result property="proTranCode"		column="tran_status_code"	 jdbcType="VARCHAR"/>
+		</resultMap>
+		
+		<insert 	id="addProduct"		parameterType="product" >
+	 	INSERT
+		INTO product( prod_no , prod_name , prod_detail , manufacture_day , price, image_file, reg_date) 
+		VALUES	 (	seq_product_prod_no.nextval, #{prodName}, #{prodDetail:VARCHAR}, 
+		#{manuDate:VARCHAR}, #{price:NUMERIC}, #{fileName:VARCHAR}, SYSDATE )
+		 </insert>
+		
+		<select id="getProduct"		parameterType="int"	resultMap="productSelectMap">
+		SELECT
+		prod_no , prod_name , prod_detail , manufacture_day ,  price ,  image_file , reg_date 		
+		FROM product
+		WHERE prod_no = #{value}
+		</select>
+		
+		<update	id="updateProduct"	parameterType="product" >
+	   	UPDATE product
+	   	<set>
+	   		prod_name 	= #{prodName} ,
+			prod_detail	= #{prodDetail},
+			manufacture_day 				= #{manuDate} ,
+			price				=	#{price},
+			image_file		= #{fileName}
+	   	</set>
+	   	WHERE prod_no = #{prodNo}
+	 </update>
+	 
+	 <select  id="getProductList"  parameterType="map"	resultMap="productSelectMap">
+	  	SELECT *
+	  	FROM (	SELECT inner_table.* , ROWNUM AS row_seq
+	  					FROM		(	SELECT p.prod_no, p.prod_name, p.image_file, p.prod_detail, p.manufacture_day, p.price, p.reg_date, NVL(t.tran_status_code, '0') AS tran_status_code 
+											FROM product p, transaction t
+											WHERE p.prod_no=t.prod_no(+)
+											<if test="object.searchCondition != null">
+													<if test="object.searchCondition == 0 and object.searchKeyword !='' ">
+										 				AND p.prod_no LIKE '%'||#{object.searchKeyword}||'%'
+													</if>
+													<if test="object.searchCondition == 1 and object.searchKeyword !='' ">
+										 				AND p.prod_name LIKE '%'||#{object.searchKeyword}||'%'
+													</if>
+													<if test="object.searchCondition == 2 and object.searchKeyword !='' ">
+										 				AND p.price LIKE '%'||#{object.searchKeyword}||'%'
+													</if>
+													</if>
+													<if test="object.searchCondition == 0 and object.searchKeyword !='' ">
+													ORDER BY p.prod_no
+													</if>
+													<if test="object.searchCondition == 1 and object.searchKeyword !='' ">
+													ORDER BY p.prod_name
+													</if>
+													<if test="object.searchCondition == 2 and object.searchKeyword !='' ">
+													ORDER BY p.price 
+													</if>
+													) inner_table
+						WHERE ROWNUM &lt;= #{object.endRowNum} )
+		WHERE row_seq BETWEEN #{object.startRowNum} AND #{object.endRowNum} 
+	 </select>
+	
+		 <select  id="getTotalCount"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM(	SELECT p.prod_no, p.prod_name, p.image_file, p.prod_detail, p.manufacture_day, p.price, p.reg_date, NVL(t.tran_status_code, '0') AS tran_status_code
+						FROM product p, transaction t
+						WHERE p.prod_no=t.prod_no(+)
+						<if test="searchCondition != null">
+													<if test="searchCondition == 0 and searchKeyword !='' ">
+										 				AND p.prod_no LIKE '%'||#{searchKeyword}||'%'
+													</if>
+													<if test="searchCondition == 1 and searchKeyword !='' ">
+										 				AND p.prod_name LIKE '%'||#{searchKeyword}||'%'
+													</if>
+													<if test="searchCondition == 2 and searchKeyword !='' ">
+										 				AND p.price LIKE '%'||#{searchKeyword}||'%'
+													</if>
+													</if>
+													<if test="searchCondition == 0 and searchKeyword !='' ">
+													ORDER BY p.prod_no
+													</if>
+													<if test="searchCondition == 1 and searchKeyword !='' ">
+													ORDER BY p.prod_name
+													</if>
+													<if test="searchCondition == 2 and searchKeyword !='' ">
+													ORDER BY p.price
+													</if>					
+	  												) countTable
+	 </select>
+</mapper>

@@ -95,7 +95,7 @@ public class ProductController {
 		//Business Logic
 		productService.updateProduct(product);
 		
-		return "redirect:/getProduct?prodNo="+product.getProdNo()+"&menu="+menu;
+		return "redirect:/product/getProduct?prodNo="+product.getProdNo()+"&menu="+menu;
 	}
 	
 	@RequestMapping(value="listProduct")
