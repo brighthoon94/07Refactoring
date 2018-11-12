@@ -120,7 +120,7 @@
 					<td align="left">판매중</td>
 					</c:if>
 					<c:if test="${product.proTranCode == '1  ' &&  param.menu == 'manage' && (!empty user.role && user.role != 'user')}">
-					<td align="left">구매완료 <a href="/product/updateTranCodeByProd?prodNo=${product.prodNo}&tranCode=2">배송하기</a></td>
+					<td align="left">구매완료 <a href="/purchase/updateTranCodeByProd?prodNo=${product.prodNo}&tranCode=2">배송하기</a></td>
 					</c:if>
 					<c:if test="${product.proTranCode == '1  ' && param.menu == 'search' && (!empty user.role && user.role != 'user')}">
 					<td align="left">구매완료</td>

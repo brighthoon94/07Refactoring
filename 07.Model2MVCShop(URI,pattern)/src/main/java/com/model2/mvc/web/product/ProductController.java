@@ -72,6 +72,7 @@ public class ProductController {
 		}
 		
 		Cookie c = new Cookie("history", history + ","+prodNo);
+		c.setPath("/");
 		response.addCookie(c);
 		return "forward:/product/getProduct.jsp";
 	}
